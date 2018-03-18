@@ -7,8 +7,6 @@ import (
 	"net"
 	"strings"
 	"time"
-
-	"github.com/davecgh/go-spew/spew"
 )
 
 // Ping it
@@ -28,7 +26,6 @@ func Ping(host string, duration time.Duration) error {
 	// "unixpacket"
 	conn, err := net.DialTimeout("tcp", host, duration)
 	if err == nil {
-		spew.Dump(conn)
 		return conn.Close()
 	}
 	return err
