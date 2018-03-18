@@ -39,7 +39,7 @@ func TestPingPostgres(t *testing.T) {
 }
 
 func TestPingNsq(t *testing.T) {
-	if err := Up("./test", "docker-compose.nsq.yaml", "--build"); err != nil {
+	if err := Up("./test", "docker-compose.nsq.yaml"); err != nil {
 		t.Error(err)
 	}
 	defer Down("./test", "docker-compose.nsq.yaml")
@@ -76,5 +76,20 @@ func TestPingNsq(t *testing.T) {
 				t.Errorf("Ping() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
+	}
+}
+
+func TestFind(t *testing.T) {
+	r, err := UpWithLogs("./test", "docker-compose.kafka.yaml")
+	if err != nil {
+		t.Error(err)
+	}
+	defer Down("./test", "docker-compose.kafka.yaml")
+
+	if err = Find("started (kafka.server.KafkaServer)", r, time.Second*10); err != nil {
+		t.Errorf(`"started (kafka.server.KafkaServer)" phrase should show up within 10s, %v`, err)
+	}
+	if err = Find("a random message", r, time.Second*10); err == nil {
+		t.Error(`'a random message' phrase should not exist`)
 	}
 }
