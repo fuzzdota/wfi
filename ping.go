@@ -2,6 +2,7 @@ package wfi
 
 import (
 	"bufio"
+	"bytes"
 	"errors"
 	"io"
 	"net"
@@ -35,7 +36,11 @@ func Ping(host string, duration time.Duration) error {
 // Currently there is no support for regex and the logic is built on top of `strings.Contains()` function
 func Find(phrase string, r io.Reader, duration time.Duration) error {
 	timer := time.NewTimer(duration)
-	scanner := bufio.NewScanner(r)
+	// Duplicate log stream
+	var buf bytes.Buffer
+	io.TeeReader(r, &buf)
+
+	scanner := bufio.NewScanner(&buf)
 	for scanner.Scan() {
 		select {
 		case <-timer.C:
