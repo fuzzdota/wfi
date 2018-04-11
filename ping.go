@@ -2,7 +2,6 @@ package wfi
 
 import (
 	"bufio"
-	"bytes"
 	"errors"
 	"io"
 	"net"
@@ -34,22 +33,19 @@ func Ping(host string, duration time.Duration) error {
 
 // Find parses from reader line by line to determine whether the given phrase exists.
 // Currently there is no support for regex and the logic is built on top of `strings.Contains()` function
-func Find(phrase string, r io.Reader, duration time.Duration) error {
+func Find(phrase string, r io.Reader, duration time.Duration) (string, error) {
 	timer := time.NewTimer(duration)
-	// Duplicate log stream
-	var buf bytes.Buffer
-	io.TeeReader(r, &buf)
-
-	scanner := bufio.NewScanner(&buf)
+	scanner := bufio.NewScanner(r)
 	for scanner.Scan() {
 		select {
 		case <-timer.C:
-			return errors.New("cannot find phrase in time")
+			return "", errors.New("cannot find phrase in time")
 		default:
-			if strings.Contains(scanner.Text(), phrase) {
-				return nil
+			line := scanner.Text()
+			if strings.Contains(line, phrase) {
+				return line, nil
 			}
 		}
 	}
-	return nil
+	return "", errors.New("phrase does not exist")
 }
